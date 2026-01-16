@@ -1,0 +1,11 @@
+# Minimal requirements for running Phase 1+2 locally
+# This is separate from the full requirements.txt
+
+# Web Framework
+Flask==3.0.0
+flask-cors==4.0.0
+
+# Basic utilities (already in requirements.txt but listed here for clarity)
+# These are optional for the basic API server
+# numpy==1.24.3
+# opencv-python-headless==4.8.1.78

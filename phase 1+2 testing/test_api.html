@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Raksha API Test - Phase 1+2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result.fake {
+            background: #fee;
+            border: 2px solid #f88;
+        }
+        
+        .result.real {
+            background: #efe;
+            border: 2px solid #8f8;
+        }
+        
+        .result-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .confidence {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .details {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .status.connected {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ INTERCEPTOR</h1>
+        <p class="subtitle">E-Raksha Deepfake Detection - Phase 1+2 Local Test</p>
+        
+        <div id="status" class="status">Checking API connection...</div>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📹</div>
+            <h3>Drop video file here or click to upload</h3>
+            <p style="color: #999; margin-top: 10px;">Supports MP4, AVI, MOV files</p>
+            <input type="file" id="fileInput" accept="video/*">
+        </div>
+        
+        <button id="analyzeBtn" disabled>Analyze Video</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing video with AI models...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000';
+        let selectedFile = null;
+        
+        // Check API health
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const data = await response.json();
+                
+                document.getElementById('status').className = 'status connected';
+                document.getElementById('status').textContent = `✅ API Connected - ${data.models_available.length} models available`;
+            } catch (error) {
+                document.getElementById('status').className = 'status error';
+                document.getElementById('status').textContent = '❌ API not connected. Make sure to run: python app.py';
+            }
+        }
+        
+        // Upload area interactions
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            selectedFile = file;
+            uploadArea.innerHTML = `
+                <div class="upload-icon">✅</div>
+                <h3>${file.name}</h3>
+                <p style="color: #999; margin-top: 10px;">Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            `;
+            analyzeBtn.disabled = false;
+        }
+        
+        analyzeBtn.addEventListener('click', analyzeVideo);
+        
+        async function analyzeVideo() {
+            if (!selectedFile) return;
+            
+            analyzeBtn.disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            try {
+                const response = await fetch(`${API_URL}/api/predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                alert('Error analyzing video: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        }
+        
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            const isFake = data.prediction === 'fake';
+            
+            resultDiv.className = `result ${isFake ? 'fake' : 'real'}`;
+            resultDiv.style.display = 'block';
+            
+            const confidencePercent = (data.confidence * 100).toFixed(1);
+            
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    ${isFake ? '⚠️ DEEPFAKE DETECTED' : '✅ AUTHENTIC VIDEO'}
+                </div>
+                <div class="confidence">
+                    Confidence: ${confidencePercent}%
+                </div>
+                <div class="details">
+                    <div class="detail-row">
+                        <span><strong>Models Used:</strong></span>
+                        <span>${data.models_used.join(', ')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Confidence Level:</strong></span>
+                        <span>${data.analysis.routing.confidence_level.toUpperCase()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Specialists Invoked:</strong></span>
+                        <span>${data.analysis.routing.specialists_invoked}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Frames Analyzed:</strong></span>
+                        <span>${data.analysis.frames_analyzed}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Processing Time:</strong></span>
+                        <span>${data.processing_time}s</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Video Duration:</strong></span>
+                        <span>${data.analysis.routing.video_characteristics.duration}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Resolution:</strong></span>
+                        <span>${data.analysis.routing.video_characteristics.resolution}</span>
+                    </div>
+                    ${isFake ? `
+                    <div class="detail-row">
+                        <span><strong>Suspicious Frames:</strong></span>
+                        <span>${data.analysis.suspicious_frames}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        // Check health on load
+        checkHealth();
+        setInterval(checkHealth, 10000); // Check every 10 seconds
+    </script>
+</body>
+</html>
