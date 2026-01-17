@@ -1,7 +1,7 @@
 import { FileVideo, Clock, AlertCircle, X, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import { RechartsDonutChart } from '../components/charts/RechartsDonutChart';
 import MetadataSummary from '../components/charts/MetadataSummary';
-import { getAnalyticsStats, getRecentAnalyses, formatRelativeTime } from '../utils/supabase';
+import { getAnalyticsStats, getRecentAnalyses, formatRelativeTime } from '../../utils/supabase';
 import { useState, useEffect } from 'react';
 
 interface AnalysisDetail {

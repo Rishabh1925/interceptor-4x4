@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { getAnalyticsStats } from '../utils/supabase';
+import { getAnalyticsStats } from '../../utils/supabase';
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
