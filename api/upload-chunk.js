@@ -102,13 +102,13 @@ export default async function handler(req, res) {
     const uploadId = fields.uploadId?.[0];
     const chunkIndex = parseInt(fields.chunkIndex?.[0] || '-1');
     const totalChunks = parseInt(fields.totalChunks?.[0] || '0');
-    const filename = fields.filename?.[0];
-    const totalSize = parseInt(fields.totalSize?.[0] || '0');
+    const filename = fields.fileName?.[0]; // Changed from filename to fileName
+    const totalSize = parseInt(fields.fileSize?.[0] || '0'); // Changed from totalSize to fileSize
 
     // Validation
     if (!chunk || !uploadId || chunkIndex < 0 || !filename) {
       return res.status(400).json({ 
-        error: 'Missing required fields: chunk, uploadId, chunkIndex, filename' 
+        error: 'Missing required fields: chunk, uploadId, chunkIndex, fileName' 
       });
     }
 

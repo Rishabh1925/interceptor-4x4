@@ -3,13 +3,21 @@
  * 
  * Reassembles uploaded chunks into complete video file and triggers AI analysis.
  * Final step of the Resumable Chunked Upload Protocol.
+ * 
+ * IMPORTANT: In Vercel serverless environment, /tmp directories may be cleaned
+ * between function invocations. This function handles missing directories gracefully.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 
-const TEMP_DIR = '/tmp/uploads';
+const TEMP_DIR = '/tmp/chunks';
+
+// Ensure temp directory exists
+if (!fs.existsSync(TEMP_DIR)) {
+  fs.mkdirSync(TEMP_DIR, { recursive: true });
+}
 
 // Import the same analysis logic from predict.js
 const MODELS = {
@@ -82,7 +90,7 @@ function reassembleVideo(uploadId, fileName) {
   
   // Get all chunk files sorted by index
   const chunkFiles = fs.readdirSync(uploadDir)
-    .filter(file => file.startsWith('chunk_'))
+    .filter(file => file.startsWith('chunk_') && file.endsWith('.bin'))
     .sort();
   
   console.log(`Reassembling ${chunkFiles.length} chunks for ${uploadId}`);
@@ -123,19 +131,60 @@ export default async function handler(req, res) {
   try {
     const { uploadId, fileName, fileSize, totalChunks } = req.body;
 
+    console.log(`Complete upload request for ${uploadId}: ${fileName} (${totalChunks} chunks)`);
+
     if (!uploadId || !fileName) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Ensure temp directory exists
+    if (!fs.existsSync(TEMP_DIR)) {
+      console.log(`Creating temp directory: ${TEMP_DIR}`);
+      fs.mkdirSync(TEMP_DIR, { recursive: true });
+    }
+
     const uploadDir = path.join(TEMP_DIR, uploadId);
 
+    // Check if upload directory exists
+    console.log(`Looking for upload directory: ${uploadDir}`);
+    if (!fs.existsSync(uploadDir)) {
+      console.error(`Upload directory not found: ${uploadDir}`);
+      
+      // In serverless environments, /tmp may be cleaned between function calls
+      // Return a more helpful error message
+      return res.status(404).json({ 
+        error: `Upload session expired. Please try uploading the file again. This can happen in serverless environments where temporary files are cleaned up between requests.`,
+        code: 'UPLOAD_SESSION_EXPIRED',
+        uploadId: uploadId
+      });
+    }
+
     // Verify all chunks received
-    const chunkFiles = fs.readdirSync(uploadDir)
-      .filter(file => file.startsWith('chunk_'));
-    
+    let chunkFiles;
+    try {
+      chunkFiles = fs.readdirSync(uploadDir)
+        .filter(file => file.startsWith('chunk_') && file.endsWith('.bin'));
+      
+      console.log(`Found ${chunkFiles.length} chunk files in ${uploadDir}`);
+      
+    } catch (error) {
+      console.error(`Error reading upload directory ${uploadDir}:`, error.message);
+      return res.status(500).json({ 
+        error: `Cannot access upload directory. This may be due to serverless cleanup. Please try uploading again.`,
+        code: 'DIRECTORY_ACCESS_ERROR',
+        details: error.message 
+      });
+    }
+
     if (chunkFiles.length !== totalChunks) {
+      console.error(`Chunk count mismatch. Expected: ${totalChunks}, Found: ${chunkFiles.length}`);
+      console.log(`Available chunks:`, chunkFiles);
+      
       return res.status(400).json({
-        error: `Missing chunks. Expected ${totalChunks}, got ${chunkFiles.length}`,
+        error: `Incomplete upload. Expected ${totalChunks} chunks, but found ${chunkFiles.length}. Please try uploading again.`,
+        code: 'INCOMPLETE_UPLOAD',
+        expected: totalChunks,
+        found: chunkFiles.length
       });
     }
 
@@ -201,8 +250,13 @@ export default async function handler(req, res) {
 
     // Clean up
     fs.unlinkSync(videoPath);
-    fs.unlinkSync(path.join(uploadDir, 'metadata.json'));
-    fs.rmdirSync(uploadDir);
+    const metadataPath = path.join(uploadDir, 'metadata.json');
+    if (fs.existsSync(metadataPath)) {
+      fs.unlinkSync(metadataPath);
+    }
+    if (fs.existsSync(uploadDir)) {
+      fs.rmdirSync(uploadDir);
+    }
 
     console.log(`Analysis complete for ${uploadId}: ${result.prediction} (${result.confidence})`);
 

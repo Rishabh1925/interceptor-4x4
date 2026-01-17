@@ -16,7 +16,7 @@ const Navbar = () => {
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/analytics', label: 'Statistics' },
     { path: '/contact', label: 'Contact' },
-  ];
+  ]; 
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-5xl">
