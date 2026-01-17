@@ -34,6 +34,16 @@ export default function LiquidEther({
   useEffect(() => {
     if (!mountRef.current) return;
 
+    // Check for WebGL support
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) {
+      console.warn('WebGL not supported, LiquidEther will not render');
+      return;
+    }
+
+    try {
+
     function makePaletteTexture(stops) {
       let arr;
       if (Array.isArray(stops) && stops.length > 0) {
@@ -1091,6 +1101,16 @@ gl_FragColor = vec4(newv, 0.0, 0.0);
       }
       webglRef.current = null;
     };
+
+    } catch (error) {
+      console.warn('LiquidEther initialization failed:', error);
+      // Fallback: just show a simple gradient background
+      if (mountRef.current) {
+        mountRef.current.style.background = `linear-gradient(45deg, ${colors[0]}, ${colors[1] || colors[0]})`;
+        mountRef.current.style.opacity = '0.3';
+      }
+      return () => {}; // Empty cleanup function
+    }
   }, [
     BFECC,
     cursorSize,
