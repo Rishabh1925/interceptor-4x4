@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 
-const TEMP_DIR = '/tmp/uploads';
+const TEMP_DIR = '/tmp/chunks';
 
 // Import the same analysis logic from predict.js
 const MODELS = {
@@ -82,7 +82,7 @@ function reassembleVideo(uploadId, fileName) {
   
   // Get all chunk files sorted by index
   const chunkFiles = fs.readdirSync(uploadDir)
-    .filter(file => file.startsWith('chunk_'))
+    .filter(file => file.startsWith('chunk_') && file.endsWith('.bin'))
     .sort();
   
   console.log(`Reassembling ${chunkFiles.length} chunks for ${uploadId}`);
@@ -131,7 +131,7 @@ export default async function handler(req, res) {
 
     // Verify all chunks received
     const chunkFiles = fs.readdirSync(uploadDir)
-      .filter(file => file.startsWith('chunk_'));
+      .filter(file => file.startsWith('chunk_') && file.endsWith('.bin'));
     
     if (chunkFiles.length !== totalChunks) {
       return res.status(400).json({
@@ -201,8 +201,13 @@ export default async function handler(req, res) {
 
     // Clean up
     fs.unlinkSync(videoPath);
-    fs.unlinkSync(path.join(uploadDir, 'metadata.json'));
-    fs.rmdirSync(uploadDir);
+    const metadataPath = path.join(uploadDir, 'metadata.json');
+    if (fs.existsSync(metadataPath)) {
+      fs.unlinkSync(metadataPath);
+    }
+    if (fs.existsSync(uploadDir)) {
+      fs.rmdirSync(uploadDir);
+    }
 
     console.log(`Analysis complete for ${uploadId}: ${result.prediction} (${result.confidence})`);
 
