@@ -1,10 +1,10 @@
-# E-Raksha Docker Compose Configuration
+# Interceptor Docker Compose Configuration
 version: '3.8'
 
 services:
-  eraksha:
+  interceptor:
     build: .
-    container_name: eraksha-app
+    container_name: interceptor-backend
     ports:
       - "8000:8000"  # Backend API
     volumes:
