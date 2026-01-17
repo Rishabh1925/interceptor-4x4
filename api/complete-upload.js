@@ -3,6 +3,9 @@
  * 
  * Reassembles uploaded chunks into complete video file and triggers AI analysis.
  * Final step of the Resumable Chunked Upload Protocol.
+ * 
+ * IMPORTANT: In Vercel serverless environment, /tmp directories may be cleaned
+ * between function invocations. This function handles missing directories gracefully.
  */
 
 import fs from 'fs';
@@ -10,6 +13,11 @@ import path from 'path';
 import { createHash } from 'crypto';
 
 const TEMP_DIR = '/tmp/chunks';
+
+// Ensure temp directory exists
+if (!fs.existsSync(TEMP_DIR)) {
+  fs.mkdirSync(TEMP_DIR, { recursive: true });
+}
 
 // Import the same analysis logic from predict.js
 const MODELS = {
@@ -141,14 +149,14 @@ export default async function handler(req, res) {
     console.log(`Looking for upload directory: ${uploadDir}`);
     if (!fs.existsSync(uploadDir)) {
       console.error(`Upload directory not found: ${uploadDir}`);
-      // List what's actually in the temp directory
-      try {
-        const tempContents = fs.readdirSync(TEMP_DIR);
-        console.log(`Contents of ${TEMP_DIR}:`, tempContents);
-      } catch (err) {
-        console.error(`Cannot read temp directory ${TEMP_DIR}:`, err.message);
-      }
-      return res.status(404).json({ error: `Upload directory not found: ${uploadId}` });
+      
+      // In serverless environments, /tmp may be cleaned between function calls
+      // Return a more helpful error message
+      return res.status(404).json({ 
+        error: `Upload session expired. Please try uploading the file again. This can happen in serverless environments where temporary files are cleaned up between requests.`,
+        code: 'UPLOAD_SESSION_EXPIRED',
+        uploadId: uploadId
+      });
     }
 
     // Verify all chunks received
@@ -156,14 +164,27 @@ export default async function handler(req, res) {
     try {
       chunkFiles = fs.readdirSync(uploadDir)
         .filter(file => file.startsWith('chunk_') && file.endsWith('.bin'));
+      
+      console.log(`Found ${chunkFiles.length} chunk files in ${uploadDir}`);
+      
     } catch (error) {
       console.error(`Error reading upload directory ${uploadDir}:`, error.message);
-      return res.status(500).json({ error: `Cannot access upload directory: ${error.message}` });
+      return res.status(500).json({ 
+        error: `Cannot access upload directory. This may be due to serverless cleanup. Please try uploading again.`,
+        code: 'DIRECTORY_ACCESS_ERROR',
+        details: error.message 
+      });
     }
-    
+
     if (chunkFiles.length !== totalChunks) {
+      console.error(`Chunk count mismatch. Expected: ${totalChunks}, Found: ${chunkFiles.length}`);
+      console.log(`Available chunks:`, chunkFiles);
+      
       return res.status(400).json({
-        error: `Missing chunks. Expected ${totalChunks}, got ${chunkFiles.length}`,
+        error: `Incomplete upload. Expected ${totalChunks} chunks, but found ${chunkFiles.length}. Please try uploading again.`,
+        code: 'INCOMPLETE_UPLOAD',
+        expected: totalChunks,
+        found: chunkFiles.length
       });
     }
 

@@ -163,27 +163,87 @@ export class ChunkedUploader {
 
   /**
    * Signal server that all chunks are uploaded and trigger video analysis
+   * Includes retry logic for serverless environment issues
    */
   private async completeUpload(): Promise<any> {
-    const response = await fetch('/api/complete-upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uploadId: this.uploadId,
-        fileName: this.file.name,
-        fileSize: this.file.size,
-        totalChunks: this.totalChunks,
-      }),
-    });
+    const maxRetries = 2;
+    let lastError: Error | null = null;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Failed to complete upload');
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Attempting upload completion (attempt ${attempt}/${maxRetries})`);
+        
+        const response = await fetch('/api/complete-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uploadId: this.uploadId,
+            fileName: this.file.name,
+            fileSize: this.file.size,
+            totalChunks: this.totalChunks,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          
+          // Check if this is a serverless cleanup issue
+          if (errorData.code === 'UPLOAD_SESSION_EXPIRED' || errorData.code === 'DIRECTORY_ACCESS_ERROR') {
+            console.warn(`Serverless cleanup detected on attempt ${attempt}:`, errorData.error);
+            
+            if (attempt < maxRetries) {
+              console.log('Retrying by re-uploading chunks...');
+              // Re-upload all chunks and try again
+              await this.reuploadAllChunks();
+              continue;
+            }
+          }
+          
+          throw new Error(errorData.error || 'Failed to complete upload');
+        }
+
+        return await response.json();
+        
+      } catch (error: any) {
+        lastError = error;
+        console.error(`Upload completion attempt ${attempt} failed:`, error.message);
+        
+        if (attempt < maxRetries) {
+          // Wait a bit before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
 
-    return await response.json();
+    throw lastError || new Error('Upload completion failed after all retries');
+  }
+
+  /**
+   * Re-upload all chunks (for retry scenarios)
+   */
+  private async reuploadAllChunks(): Promise<void> {
+    console.log('Re-uploading all chunks due to serverless cleanup...');
+    
+    for (let i = 0; i < this.totalChunks; i++) {
+      await this.uploadChunk(i);
+      
+      // Update progress for re-upload
+      if (this.onProgress) {
+        const progress = ((i + 1) / this.totalChunks) * 100;
+        const bytesUploaded = Math.min((i + 1) * CHUNK_SIZE, this.file.size);
+        
+        this.onProgress({
+          chunk: i + 1,
+          totalChunks: this.totalChunks,
+          progress: progress,
+          uploadId: this.uploadId,
+          bytesUploaded,
+          totalBytes: this.file.size,
+        });
+      }
+    }
   }
 
   /**
