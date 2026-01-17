@@ -6,13 +6,21 @@ import { useTheme } from '../context/ThemeContext';
 import SystemArchitectureCanvas from '../components/SystemArchitectureCanvas';
 
 import { saveAnalysis, checkDuplicateFile, type VideoAnalysis } from '../../utils/supabase';
-import { ChunkedUploader, formatBytes } from '../../utils/chunkedUpload';
 
 // Backend API URL - Always use Vercel serverless API
 const API_URL = '/api';
 
-// File size threshold for chunked upload (4MB)
-const CHUNKED_UPLOAD_THRESHOLD = 4 * 1024 * 1024;
+// File size threshold for large video processing (10MB)
+const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024;
+
+// Helper function to format file sizes
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 const AnalysisWorkbench = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -91,8 +99,8 @@ const AnalysisWorkbench = () => {
     resetFlow();
 
     // Determine upload method based on file size
-    const useChunkedUpload = selectedFile.size > CHUNKED_UPLOAD_THRESHOLD;
-    setUploadMethod(useChunkedUpload ? 'chunked' : 'direct');
+    const isLargeFile = selectedFile.size > LARGE_FILE_THRESHOLD;
+    setUploadMethod(isLargeFile ? 'clip' : 'direct');
 
     try {
       // FIRST: Check if file was previously analyzed
@@ -135,13 +143,15 @@ const AnalysisWorkbench = () => {
       // File is new - proceed with analysis
       let result;
 
-      if (useChunkedUpload) {
-        // Use chunked upload for large files
-        console.log(`Using chunked upload for ${formatBytes(selectedFile.size)} file`);
-        result = await analyzeVideoChunked();
+      if (selectedFile.size > LARGE_FILE_THRESHOLD) {
+        // Use clip extraction for large files
+        console.log(`Using clip extraction for ${formatBytes(selectedFile.size)} file`);
+        setUploadMethod('clip');
+        result = await analyzeLargeVideo();
       } else {
         // Use direct upload for small files
         console.log(`Using direct upload for ${formatBytes(selectedFile.size)} file`);
+        setUploadMethod('direct');
         result = await analyzeVideoDirect();
       }
 
@@ -161,7 +171,41 @@ const AnalysisWorkbench = () => {
   };
 
   /**
-   * Analyze video using direct upload (for files < 4MB)
+   * Analyze large video using clip extraction (for files > 10MB)
+   */
+  const analyzeLargeVideo = async () => {
+    if (!selectedFile) return null;
+
+    // Stage 1: Video Upload
+    setProcessingStage('Uploading Large Video');
+    activateModel('video-input');
+    setProgress(5);
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    // Stage 2: Sending to API
+    setProcessingStage('Extracting First 2-3 Seconds');
+    activateModel('frame-sampler');
+    setProgress(15);
+
+    // Make API call to large video endpoint
+    const response = await fetch(`${API_URL}/predict-large-video`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Server error: ${response.status}`);
+    }
+
+    return await response.json();
+  };
+
+  /**
+   * Analyze video using direct upload (for files < 10MB)
    */
   const analyzeVideoDirect = async () => {
     if (!selectedFile) return null;
@@ -192,60 +236,6 @@ const AnalysisWorkbench = () => {
     }
 
     return await response.json();
-  };
-
-  /**
-   * Analyze video using chunked upload (for files > 4MB)
-   */
-  const analyzeVideoChunked = async (): Promise<any> => {
-    if (!selectedFile) return null;
-
-    return new Promise((resolve, reject) => {
-      const startTime = Date.now();
-      let lastUpdateTime = startTime;
-      let lastBytesUploaded = 0;
-
-      const uploader = new ChunkedUploader(selectedFile, {
-        onProgress: (progressData) => {
-          // Calculate upload speed
-          const now = Date.now();
-          const timeDiff = (now - lastUpdateTime) / 1000; // seconds
-          const bytesDiff = progressData.bytesUploaded - lastBytesUploaded;
-          
-          if (timeDiff > 0) {
-            const speed = bytesDiff / timeDiff; // bytes per second
-            setUploadSpeed(speed);
-          }
-
-          lastUpdateTime = now;
-          lastBytesUploaded = progressData.bytesUploaded;
-
-          // Update progress (0-50% for upload, 50-100% for analysis)
-          const uploadProgress = progressData.progress * 0.5;
-          setProgress(uploadProgress);
-          
-          setProcessingStage(
-            `Uploading Chunk ${progressData.chunk}/${progressData.totalChunks} (${formatBytes(progressData.bytesUploaded)}/${formatBytes(progressData.totalBytes)})`
-          );
-
-          // Activate models during upload
-          if (progressData.progress > 10) activateModel('video-input');
-          if (progressData.progress > 30) activateModel('frame-sampler');
-          if (progressData.progress > 50) activateModel('face-detector');
-          if (progressData.progress > 70) activateModel('audio-extractor');
-        },
-        onComplete: (result) => {
-          setProcessingStage('Upload Complete - Processing...');
-          setProgress(50);
-          resolve(result);
-        },
-        onError: (error) => {
-          reject(error);
-        },
-      });
-
-      uploader.start().catch(reject);
-    });
   };
 
   /**
@@ -307,7 +297,7 @@ const AnalysisWorkbench = () => {
     // Generate explanation based on result
     const predictionLabel = result.prediction === 'fake' ? 'MANIPULATED (FAKE)' : 'AUTHENTIC (REAL)';
     const confidencePercent = (result.confidence * 100).toFixed(1);
-    const uploadMethodText = uploadMethod === 'chunked' ? ' using chunked upload protocol' : '';
+    const uploadMethodText = uploadMethod === 'clip' ? ' using clip extraction from large video' : '';
     const explanation = result.prediction === 'fake'
       ? `This video is classified as ${predictionLabel} with ${confidencePercent}% confidence. Analysis performed by ${result.models_used?.length || 1} specialist model(s)${uploadMethodText}. Detected inconsistencies suggest potential manipulation.`
       : `This video is classified as ${predictionLabel} with ${confidencePercent}% confidence. No significant manipulation artifacts detected across ${result.analysis?.frames_analyzed || 30} analyzed frames${uploadMethodText}.`;
@@ -439,10 +429,10 @@ const AnalysisWorkbench = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
-                {selectedFile.size > CHUNKED_UPLOAD_THRESHOLD && (
+                {selectedFile.size > LARGE_FILE_THRESHOLD && (
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
                     <Zap className="w-3 h-3" />
-                    Will use chunked upload protocol
+                    Will analyze first 2-3 seconds for faster processing
                   </p>
                 )}
               </div>
@@ -522,9 +512,9 @@ const AnalysisWorkbench = () => {
                     <span>{progress}%</span>
                   </div>
                   <Progress value={progress} className="h-2" />
-                  {uploadMethod === 'chunked' && uploadSpeed > 0 && progress < 50 && (
+                  {uploadMethod === 'clip' && uploadSpeed > 0 && progress < 50 && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      Upload speed: {formatBytes(uploadSpeed)}/s
+                      Processing large video: {formatBytes(uploadSpeed)}/s
                     </p>
                   )}
                 </div>

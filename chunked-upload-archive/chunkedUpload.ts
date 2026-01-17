@@ -112,12 +112,29 @@ export class ChunkedUploader {
   }
 
   /**
-   * Upload all chunks sequentially
-   * Sequential upload ensures proper reassembly and avoids overwhelming the server
+   * Start upload with automatic method selection
+   * Tries combined upload first (better for serverless), falls back to sequential if needed
    */
   async start(): Promise<any> {
     try {
-      console.log(`Starting chunked upload: ${this.totalChunks} chunks for ${this.file.name}`);
+      // Try combined upload first (better for Vercel serverless)
+      console.log('Attempting combined upload for serverless compatibility...');
+      return await this.startCombined();
+      
+    } catch (error: any) {
+      console.warn('Combined upload failed, falling back to sequential:', error.message);
+      
+      // Fallback to sequential upload
+      return await this.startSequential();
+    }
+  }
+
+  /**
+   * Upload all chunks sequentially (fallback method)
+   */
+  async startSequential(): Promise<any> {
+    try {
+      console.log(`Starting sequential chunked upload: ${this.totalChunks} chunks for ${this.file.name}`);
       
       for (let i = 0; i < this.totalChunks; i++) {
         if (this.aborted) {
@@ -153,7 +170,80 @@ export class ChunkedUploader {
 
       return result;
     } catch (error: any) {
-      console.error('Upload error:', error);
+      console.error('Sequential upload error:', error);
+      if (this.onError) {
+        this.onError(error);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Upload all chunks in a single request (for serverless compatibility)
+   */
+  async startCombined(): Promise<any> {
+    try {
+      console.log(`Starting combined upload: ${this.totalChunks} chunks for ${this.file.name}`);
+      
+      const formData = new FormData();
+      
+      // Add metadata
+      formData.append('fileName', this.file.name);
+      formData.append('totalSize', this.file.size.toString());
+      formData.append('totalChunks', this.totalChunks.toString());
+      
+      // Add all chunks to the same request
+      for (let i = 0; i < this.totalChunks; i++) {
+        const chunk = this.getChunk(i);
+        formData.append('chunks', chunk, `chunk_${i}.bin`);
+        
+        // Update progress
+        const progress = ((i + 1) / this.totalChunks) * 50; // 50% for upload preparation
+        if (this.onProgress) {
+          this.onProgress({
+            chunk: i + 1,
+            totalChunks: this.totalChunks,
+            progress: progress,
+            uploadId: this.uploadId,
+            bytesUploaded: Math.min((i + 1) * CHUNK_SIZE, this.file.size),
+            totalBytes: this.file.size,
+          });
+        }
+      }
+
+      // Upload and analyze in single request
+      const response = await fetch('/api/upload-and-analyze', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Upload and analysis failed');
+      }
+
+      const result = await response.json();
+      
+      // Update progress to 100%
+      if (this.onProgress) {
+        this.onProgress({
+          chunk: this.totalChunks,
+          totalChunks: this.totalChunks,
+          progress: 100,
+          uploadId: this.uploadId,
+          bytesUploaded: this.file.size,
+          totalBytes: this.file.size,
+        });
+      }
+
+      if (this.onComplete) {
+        this.onComplete(result);
+      }
+
+      return result;
+      
+    } catch (error: any) {
+      console.error('Combined upload error:', error);
       if (this.onError) {
         this.onError(error);
       }
