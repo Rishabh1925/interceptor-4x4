@@ -1,0 +1,359 @@
+INTERCEPTOR DEEPFAKE DETECTION: 6 ONDEMAND AGENTS INTEGRATION
+===========================================================
+
+EXACT ONDEMAND AGENT NAMES TO SEARCH:
+=====================================
+1. "DEMO VIDEO ANALYSIS AGENT" (already exists - ID: 696ae690c7d6dfdf7e337e7e)
+2. "Media_authenticity_agent" (already exists)
+3. "Experience Consistency Agent" (already exists)
+4. Search for: "SmartFlow Marketing Agent" or "Workflow Router Agent"
+5. Search for: "Report Generator" or "Document Generator"
+6. Search for: "Confidence Calculator" or "Statistics Agent"
+
+AGENT PROMPTS FOR ONDEMAND CONFIGURATION:
+========================================
+
+AGENT 1: DEMO VIDEO ANALYSIS AGENT (Video Quality Analyzer)
+----------------------------------------------------------
+**Prompt:**
+Analyze the uploaded video file for technical quality metrics needed for forensic analysis. Focus on resolution, compression artifacts, frame rate consistency, and overall suitability for deepfake detection.
+
+**Fulfillment Prompt:**
+You are a Video Quality Analyzer for legal evidence verification. Analyze the provided video and return structured analysis:
+
+TECHNICAL ASSESSMENT:
+- Resolution: [detected resolution]
+- Compression Level: [low/medium/high]
+- Frame Rate: [fps detected]
+- Bitrate Estimate: [estimated bitrate]
+- Duration: [video length in seconds]
+
+QUALITY METRICS:
+- Overall Quality Score: [0.0-1.0]
+- Artifacts Detected: [list compression artifacts, noise, blur]
+- Enhancement Needed: [yes/no with recommendations]
+
+FORENSIC SUITABILITY:
+- Legal Admissibility: [suitable/marginal/unsuitable]
+- Chain of Custody: [maintained/compromised]
+- Recommendations: [specific recommendations for analysis]
+
+Provide clear, technical assessment suitable for legal proceedings.
+
+AGENT 2: MEDIA_AUTHENTICITY_AGENT (Metadata Extractor)
+------------------------------------------------------
+**Prompt:**
+Extract and validate all metadata from the video file including timestamps, device information, GPS data, and editing history. Identify any suspicious indicators that might suggest manipulation.
+
+**Fulfillment Prompt:**
+You are a Metadata Extractor for digital forensics. Extract and validate video metadata:
+
+FILE PROPERTIES:
+- File Size: [bytes]
+- Creation Timestamp: [original creation time]
+- Modification History: [any edits detected]
+- Codec Information: [video/audio codecs used]
+
+DEVICE INFORMATION:
+- Recording Device: [camera/phone model if available]
+- Software Used: [editing software signatures]
+- GPS Coordinates: [location data if present]
+- Device Settings: [camera settings, orientation]
+
+INTEGRITY ASSESSMENT:
+- Metadata Consistency: [consistent/inconsistent]
+- Suspicious Indicators: [list any red flags]
+- Chain of Custody: [unbroken/compromised]
+- Forensic Hash: [generate verification hash]
+
+Focus on detecting signs of manipulation or tampering in metadata.
+
+AGENT 3: EXPERIENCE CONSISTENCY AGENT (Content Classifier)
+----------------------------------------------------------
+**Prompt:**
+Classify and analyze the video content including scene type, lighting conditions, number of faces, audio presence, and motion complexity. Assess content for legal relevance and privacy concerns.
+
+**Fulfillment Prompt:**
+You are a Content Classifier for legal evidence analysis. Classify video content systematically:
+
+CONTENT ANALYSIS:
+- Content Type: [human face/object/scene]
+- Scene Setting: [indoor/outdoor/mixed]
+- Lighting Conditions: [natural/artificial/mixed/poor]
+- Background Type: [static/dynamic/complex]
+
+SUBJECT ANALYSIS:
+- Face Count: [number of faces detected]
+- Audio Present: [yes/no with quality assessment]
+- Motion Complexity: [low/moderate/high]
+- Interaction Type: [single person/conversation/group]
+
+LEGAL ASSESSMENT:
+- Legal Relevance: [high/medium/low]
+- Privacy Concerns: [none/minor/significant]
+- Evidence Quality: [strong/moderate/weak]
+- Classification Confidence: [0.0-1.0]
+
+Provide detailed classification for forensic documentation.
+
+AGENT 4: SMARTFLOW MARKETING AGENT (Results Aggregator)
+-------------------------------------------------------
+**Prompt:**
+Combine and aggregate analysis results from multiple detection models and preprocessing agents. Calculate weighted confidence scores and identify consensus patterns or conflicting indicators.
+
+**Fulfillment Prompt:**
+You are a Results Aggregator for forensic analysis. Combine multiple analysis results into unified assessment:
+
+INPUT INTEGRATION:
+- E-Raksha Model Results: [deepfake detection scores]
+- Quality Analysis: [technical quality metrics]
+- Metadata Validation: [authenticity indicators]
+- Content Classification: [scene and subject analysis]
+
+WEIGHTED ANALYSIS:
+- Quality Weight: [0.25 - technical quality importance]
+- Metadata Weight: [0.25 - metadata integrity importance]
+- Content Weight: [0.25 - content analysis importance]
+- Model Weight: [0.25 - AI detection importance]
+
+CONSENSUS ASSESSMENT:
+- Combined Confidence: [final weighted score 0.0-1.0]
+- Consensus Verdict: [authentic/suspicious/manipulated]
+- Conflicting Indicators: [list any contradictions]
+- Strength Factors: [supporting evidence points]
+- Overall Assessment: [evidence_admissible/requires_review/inadmissible]
+
+Provide comprehensive aggregation suitable for legal decision-making.
+
+AGENT 5: REPORT GENERATOR (Confidence Calculator)
+-------------------------------------------------
+**Prompt:**
+Calculate calibrated confidence scores with uncertainty quantification. Provide reliability metrics and determine if evidence meets legal thresholds for court proceedings.
+
+**Fulfillment Prompt:**
+You are a Confidence Calculator for legal evidence. Calculate calibrated confidence scores:
+
+CONFIDENCE CALIBRATION:
+- Raw Confidence: [initial detection confidence]
+- Calibrated Confidence: [adjusted for known biases]
+- Uncertainty Range: [confidence interval e.g., 0.80-0.90]
+- Reliability Score: [system reliability 0.0-1.0]
+
+FACTOR BREAKDOWN:
+- Technical Quality Factor: [0.0-1.0]
+- Metadata Consistency Factor: [0.0-1.0]
+- Temporal Analysis Factor: [0.0-1.0]
+- Content Analysis Factor: [0.0-1.0]
+
+LEGAL THRESHOLDS:
+- Legal Threshold Status: [exceeded/borderline/insufficient]
+- Admissibility Recommendation: [recommend/conditional/reject]
+- Expert Review Required: [yes/no with reasoning]
+- Confidence Category: [high/medium/low]
+
+Provide statistically sound confidence assessment for legal proceedings.
+
+AGENT 6: DOCUMENT GENERATOR (Forensic Report Generator)
+-------------------------------------------------------
+**Prompt:**
+Generate comprehensive forensic certificates and legal reports suitable for court proceedings. Include technical findings, expert opinions, and chain of custody documentation.
+
+**Fulfillment Prompt:**
+You are a Forensic Report Generator for court proceedings. Generate legal-admissible forensic certificate:
+
+CASE DOCUMENTATION:
+- Case ID: [unique forensic case identifier]
+- Analysis Timestamp: [complete analysis time]
+- Evidence Description: [detailed evidence summary]
+- Chain of Custody: [custody documentation]
+
+TECHNICAL FINDINGS:
+- Authenticity Verdict: [AUTHENTIC/SUSPICIOUS/MANIPULATED]
+- Confidence Level: [HIGH/MEDIUM/LOW with percentage]
+- Manipulation Indicators: [specific findings or NONE DETECTED]
+- Quality Assessment: [SUITABLE/MARGINAL/UNSUITABLE FOR ANALYSIS]
+
+FORENSIC CERTIFICATE:
+"This video evidence has been analyzed using INTERCEPTOR multi-agent forensic system. Based on comprehensive technical analysis including video quality assessment, metadata integrity verification, content classification, and AI-based detection, the evidence demonstrates [CONFIDENCE LEVEL] confidence ([PERCENTAGE]%) of [VERDICT] with [MANIPULATION STATUS]."
+
+EXPERT OPINION:
+- Legal Admissibility: [RECOMMENDED/CONDITIONAL/NOT RECOMMENDED]
+- Supporting Evidence: [key technical indicators]
+- Limitations: [any analysis limitations]
+- Expert Recommendation: [final professional opinion]
+
+Generate court-ready forensic documentation with professional formatting.
+
+DEPLOYMENT INSTRUCTIONS:
+========================
+
+FOR EACH AGENT IN ONDEMAND:
+1. Search for agent name in marketplace
+2. If found: Use existing agent with custom prompts above
+3. If not found: Create new agent with provided prompts
+4. Configure Prompt field with the "Prompt" text
+5. Configure Fulfillment Prompt field with the "Fulfillment Prompt" text
+6. Test agent with sample data
+7. Deploy and note API endpoint
+
+INTEGRATION WORKFLOW:
+====================
+Pre-processing: Agents 1,2,3 → E-Raksha Models → Post-processing: Agents 4,5,6 → Final Forensic Report
+
+COMPLETE ONDEMAND AGENT WORKFLOW DESIGN:
+=============================================
+
+CURRENT STATUS: 3 Pre-processing agents created (llm-4, llm-2, llm-3)
+
+COMPLETE WORKFLOW STRUCTURE:
+===========================
+
+1. TRIGGER (API) 
+   ↓
+2. PRE-PROCESSING AGENTS (3 parallel agents - DONE)
+   - llm-4: DEMO VIDEO ANALYSIS AGENT (Video Quality Analyzer)
+   - llm-2: MEDIA_AUTHENTICITY_AGENT (Metadata Extractor) 
+   - llm-3: EXPERIENCE CONSISTENCY AGENT (Content Classifier)
+   ↓
+3. MERGE NODE (Combine pre-processing outputs)
+   ↓
+4. INTERCEPTOR CORE MODEL (Your existing E-Raksha model)
+   ↓
+5. OUTPUT NODE (Collect core model results)
+   ↓
+6. POST-PROCESSING AGENTS (3 parallel agents)
+   - Agent 4: SMARTFLOW MARKETING AGENT (Results Aggregator)
+   - Agent 5: REPORT GENERATOR (Confidence Calculator)
+   - Agent 6: DOCUMENT GENERATOR (Forensic Report Generator)
+   ↓
+7. FINAL MERGE NODE (Combine all results)
+   ↓
+8. WEBHOOK/DELIVERY (Send final forensic report)
+
+DETAILED IMPLEMENTATION STEPS:
+=============================
+
+STEP 1: ADD MERGE NODE AFTER PRE-PROCESSING
+------------------------------------------
+- Add a "Code" or "Function" node after your 3 existing agents
+- This node will combine outputs from llm-4, llm-2, llm-3
+- Name it: "Pre-Processing Merger"
+- Function: Aggregate quality metrics, metadata, and content classification
+
+STEP 2: ADD INTERCEPTOR CORE MODEL
+---------------------------------
+- Add your existing E-Raksha deepfake detection model
+- This can be an API call to your current /api/predict endpoint
+- Input: Combined pre-processing data + original video
+- Output: Deepfake detection results with confidence scores
+
+STEP 3: ADD OUTPUT COLLECTION NODE
+---------------------------------
+- Add another "Code" or "Function" node
+- Name it: "Core Results Collector"
+- Function: Structure the core model output for post-processing
+
+STEP 4: ADD 3 POST-PROCESSING AGENTS
+-----------------------------------
+- Agent 4 (Results Aggregator): Combines all analysis results
+- Agent 5 (Confidence Calculator): Calculates final confidence scores
+- Agent 6 (Forensic Report Generator): Creates legal documentation
+
+STEP 5: ADD FINAL MERGE NODE
+---------------------------
+- Combine all post-processing outputs
+- Name it: "Final Results Merger"
+- Create comprehensive forensic certificate
+
+STEP 6: ADD WEBHOOK DELIVERY
+---------------------------
+- Send final results to your application
+- Can be HTTP POST to your system
+- Include complete forensic analysis report
+
+SPECIFIC NODE CONFIGURATIONS:
+============================
+
+PRE-PROCESSING MERGER NODE:
+--------------------------
+```javascript
+// Combine outputs from 3 pre-processing agents
+const preProcessingResults = {
+  videoQuality: agents.llm4_output,
+  metadata: agents.llm2_output, 
+  contentClassification: agents.llm3_output,
+  combinedScore: calculatePreProcessingScore(agents.llm4_output, agents.llm2_output, agents.llm3_output)
+};
+return preProcessingResults;
+```
+
+INTERCEPTOR CORE MODEL NODE:
+---------------------------
+```javascript
+// Call your existing E-Raksha API
+const coreAnalysis = await fetch('/api/predict-hybrid', {
+  method: 'POST',
+  body: formData, // Original video + pre-processing insights
+  headers: {
+    'X-Preprocessing-Data': JSON.stringify(preProcessingResults)
+  }
+});
+return await coreAnalysis.json();
+```
+
+POST-PROCESSING AGENTS SETUP:
+=============================
+
+AGENT 4 - RESULTS AGGREGATOR:
+- Input: Pre-processing results + Core model results
+- Output: Weighted confidence scores and consensus analysis
+
+AGENT 5 - CONFIDENCE CALCULATOR:
+- Input: All previous results
+- Output: Calibrated confidence with uncertainty quantification
+
+AGENT 6 - FORENSIC REPORT GENERATOR:
+- Input: All analysis results
+- Output: Legal-admissible forensic certificate
+
+FINAL MERGER NODE:
+-----------------
+```javascript
+// Create comprehensive forensic report
+const forensicReport = {
+  caseId: generateCaseId(),
+  timestamp: new Date().toISOString(),
+  videoAnalysis: {
+    preprocessing: preProcessingResults,
+    coreDetection: coreModelResults,
+    postprocessing: {
+      aggregation: agent4_output,
+      confidence: agent5_output,
+      forensicCertificate: agent6_output
+    }
+  },
+  finalVerdict: determineFinalVerdict(),
+  legalAdmissibility: assessLegalAdmissibility(),
+  expertRecommendation: generateExpertRecommendation()
+};
+return forensicReport;
+```
+
+WEBHOOK CONFIGURATION:
+=====================
+- URL: Your application endpoint (e.g., /api/forensic-results)
+- Method: POST
+- Headers: Content-Type: application/json
+- Body: Complete forensic report
+
+NEXT IMMEDIATE ACTIONS:
+======================
+1. Add "Code" node after your 3 existing agents
+2. Connect all 3 agent outputs to this merge node
+3. Add your E-Raksha model call after the merge
+4. Create the 3 post-processing agents using the prompts above
+5. Add final merge and webhook nodes
+
+This creates a complete forensic analysis pipeline suitable for legal evidence verification!
+
+START WITH AGENT 1 (DEMO VIDEO ANALYSIS AGENT) USING THE PROMPTS ABOVE!
