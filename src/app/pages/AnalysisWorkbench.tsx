@@ -355,6 +355,88 @@ const AnalysisWorkbench = () => {
     }
   };
 
+  const analyzeWithAgents = () => {
+    if (selectedFile) {
+      // Scroll to animation section when analysis starts
+      setTimeout(() => {
+        animationRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 300);
+      analyzeVideoWithAgents();
+    }
+  };
+
+  const analyzeVideoWithAgents = async () => {
+    if (!selectedFile) return;
+    
+    setIsAnalyzing(true);
+    setProgress(0);
+    setError(null);
+    setIsDuplicate(false);
+    setDuplicateResult(null);
+    setUploadSpeed(0);
+    resetFlow();
+
+    try {
+      // Stage 1: Video Upload
+      setProcessingStage('Uploading Video');
+      activateModel('video-input');
+      setProgress(5);
+
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      // Stage 2: OnDemand Agents Processing
+      setProcessingStage('OnDemand Agents Processing');
+      activateModel('frame-sampler');
+      setProgress(15);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Stage 3: Agent Analysis
+      setProcessingStage('Agent 1: Quality Analysis');
+      setProgress(25);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      setProcessingStage('Agent 2: Metadata Extraction');
+      setProgress(35);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      setProcessingStage('Agent 3: Content Classification');
+      setProgress(45);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Stage 4: Sending to Enhanced API
+      setProcessingStage('Connecting to Enhanced Server');
+      activateModel('face-detector');
+      setProgress(55);
+
+      // Make API call to agent-enhanced endpoint
+      const response = await fetch('/api/predict-with-agents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Server error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      await processAnalysisResult(result);
+
+    } catch (err: any) {
+      console.error('Agent-enhanced analysis error:', err);
+      setError(err.message || 'Failed to analyze video with agents. Please try again.');
+      setProcessingStage('Error');
+      resetFlow();
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleReset = () => {
     setSelectedFile(null);
     setAnalysisResult(null);
@@ -465,12 +547,21 @@ const AnalysisWorkbench = () => {
               Analyze Video
             </button>
             {selectedFile && (
-              <button
-                onClick={handleReset}
-                className="px-6 py-3 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md hover:bg-white/70 dark:hover:bg-gray-900/70 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded-xl transition-colors text-sm sm:text-base"
-              >
-                Clear
-              </button>
+              <>
+                <button
+                  onClick={() => analyzeWithAgents()}
+                  disabled={!selectedFile}
+                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-lg text-sm sm:text-base"
+                >
+                  Analyze with Agents
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="px-6 py-3 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md hover:bg-white/70 dark:hover:bg-gray-900/70 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded-xl transition-colors text-sm sm:text-base"
+                >
+                  Clear
+                </button>
+              </>
             )}
           </div>
         )}
@@ -499,9 +590,18 @@ const AnalysisWorkbench = () => {
           <div ref={animationRef} className="space-y-6">
             {/* Processing Progress */}
             <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Analyzing Video
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+                  Analyzing Video
+                </h2>
+                {/* OnDemand Agent Badge */}
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                    OnDemand Agents Active
+                  </span>
+                </div>
+              </div>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -517,6 +617,27 @@ const AnalysisWorkbench = () => {
                       Processing large video: {formatBytes(uploadSpeed)}/s
                     </p>
                   )}
+                </div>
+                
+                {/* Agent Status */}
+                <div className="bg-green-50/50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
+                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-2">
+                    Pre-processing Agents
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-600 dark:text-green-400">Quality Analyzer</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-600 dark:text-green-400">Metadata Extractor</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-600 dark:text-green-400">Content Classifier</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -546,9 +667,20 @@ const AnalysisWorkbench = () => {
             {/* Results Header */}
             <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-2xl p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Analysis Results
-                </h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Analysis Results
+                  </h2>
+                  {/* OnDemand Enhanced Badge */}
+                  {analysisResult.raw_result?.ondemand_analysis?.agents_used > 0 && (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-full border border-green-200 dark:border-green-800">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                        Enhanced by {analysisResult.raw_result.ondemand_analysis.agents_used} Agents
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={handleReset}
                   className="px-4 py-2 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-md hover:bg-gray-200/50 dark:hover:bg-gray-700/50 text-gray-900 dark:text-white rounded-lg transition-colors"
@@ -613,6 +745,32 @@ const AnalysisWorkbench = () => {
                 </div>
               </div>
 
+              {/* Models Used Section */}
+              <div className="bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-md rounded-xl p-4 mb-6">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Models & Agents Used
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {analysisResult.specialists_used.map((model: string, index: number) => (
+                    <span
+                      key={index}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        model.includes('OnDemand') || model.includes('Agent')
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                      }`}
+                    >
+                      {model}
+                    </span>
+                  ))}
+                </div>
+                {analysisResult.raw_result?.ondemand_analysis?.agents_used > 0 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Enhanced analysis with {analysisResult.raw_result.ondemand_analysis.agents_used} preprocessing agents
+                  </p>
+                )}
+              </div>
+
               <div className="bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-md rounded-xl p-4">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Explanation
@@ -620,6 +778,42 @@ const AnalysisWorkbench = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {analysisResult.explanation}
                 </p>
+                
+                {/* Show OnDemand agent insights if available */}
+                {analysisResult.raw_result?.ondemand_analysis?.agent_insights && (
+                  <div className="mt-4 p-3 bg-green-50/50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-2 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      Agent Analysis
+                    </p>
+                    <div className="space-y-2 text-xs text-green-600 dark:text-green-400">
+                      {analysisResult.raw_result.ondemand_analysis.agent_insights.agent1 && (
+                        <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded">
+                          <strong className="text-green-700 dark:text-green-300">Agent 1 (Quality):</strong>
+                          <p className="mt-1">{analysisResult.raw_result.ondemand_analysis.agent_insights.agent1}</p>
+                        </div>
+                      )}
+                      {analysisResult.raw_result.ondemand_analysis.agent_insights.agent2 && (
+                        <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded">
+                          <strong className="text-green-700 dark:text-green-300">Agent 2 (Metadata):</strong>
+                          <p className="mt-1">{analysisResult.raw_result.ondemand_analysis.agent_insights.agent2}</p>
+                        </div>
+                      )}
+                      {analysisResult.raw_result.ondemand_analysis.agent_insights.agent3 && (
+                        <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded">
+                          <strong className="text-green-700 dark:text-green-300">Agent 3 (Content):</strong>
+                          <p className="mt-1">{analysisResult.raw_result.ondemand_analysis.agent_insights.agent3}</p>
+                        </div>
+                      )}
+                      <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
+                        <p className="text-xs text-green-600 dark:text-green-400">
+                          <strong>Agents Used:</strong> {analysisResult.raw_result.ondemand_analysis.agents_used}/3 • 
+                          <strong> Confidence Adjustment:</strong> {(analysisResult.raw_result.ondemand_analysis.confidence_adjustment * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
