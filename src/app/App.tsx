@@ -13,6 +13,7 @@ import AdvancedAnalytics from './pages/AdvancedAnalytics';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import ChartDemo from './pages/ChartDemo';
+import ChatbotPage from './pages/ChatbotPage';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/advanced-analytics" element={<AdvancedAnalytics />} />
+              <Route path="/chatbot" element={<ChatbotPage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/chart-demo" element={<ChartDemo />} />

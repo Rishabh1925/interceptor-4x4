@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import SystemArchitectureCanvas from '../components/SystemArchitectureCanvas';
 
 import { saveAnalysis, checkDuplicateFile, type VideoAnalysis } from '../../utils/supabase';
+import { saveAnalysisLocally } from '../../utils/local-storage-analysis';
 
 // Backend API URL - Always use Vercel serverless API
 const API_URL = '/api';
@@ -327,10 +328,31 @@ const AnalysisWorkbench = () => {
         user_ip: 'web-client'
       };
       
-      await saveAnalysis(analysisRecord);
-      console.log('Analysis saved to database');
+      const saved = await saveAnalysis(analysisRecord);
+      if (saved) {
+        console.log('✅ Analysis saved to Supabase database');
+      } else {
+        // Fallback to local storage when Supabase isn't configured
+        console.log('⚠️ Supabase not configured, saving locally...');
+        saveAnalysisLocally({
+          filename: selectedFile!.name,
+          prediction: result.prediction,
+          confidence: result.confidence,
+          models_used: result.models_used || ['BG-Model'],
+          processing_time: result.processing_time || 2.0
+        });
+      }
     } catch (dbError) {
-      console.error('Failed to save to database:', dbError);
+      console.error('❌ Failed to save to database:', dbError);
+      // Fallback to local storage on error
+      console.log('💾 Falling back to local storage...');
+      saveAnalysisLocally({
+        filename: selectedFile!.name,
+        prediction: result.prediction,
+        confidence: result.confidence,
+        models_used: result.models_used || ['BG-Model'],
+        processing_time: result.processing_time || 2.0
+      });
     }
 
     // Scroll to results section when complete

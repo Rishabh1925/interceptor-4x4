@@ -11,11 +11,6 @@
     "lint": "eslint src --ext js,jsx,ts,tsx"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "cloudinary": "^1.40.0",
-    "crypto": "^1.0.1",
-    "formidable": "^3.5.1",
-    "node-fetch": "^2.7.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^6.1.9",
@@ -51,18 +46,23 @@
     "@types/plotly.js": "^2.12.29",
     "@types/three": "^0.182.0",
     "apexcharts": "^4.0.0",
+    "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^1.40.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "crypto": "^1.0.1",
     "d3": "^7.8.5",
     "date-fns": "^3.6.0",
     "echarts": "^5.4.3",
     "echarts-for-react": "^3.0.2",
     "embla-carousel-react": "^8.6.0",
+    "formidable": "^3.5.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.487.0",
     "motion": "^12.23.24",
     "next-themes": "^0.4.6",
+    "node-fetch": "^2.7.0",
     "plotly.js": "^2.27.1",
     "react": "^18.3.1",
     "react-apexcharts": "^1.9.0",
@@ -85,14 +85,20 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/ui": "^4.0.17",
     "autoprefixer": "^10.4.20",
+    "jsdom": "^27.4.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vitest": "^4.0.17"
   },
   "engines": {
     "node": "20.x"
