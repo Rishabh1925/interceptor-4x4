@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, Bot, User, Sparkles, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, AlertCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { standaloneChatService, AnalysisContext } from '../../utils/standalone-chat';
 import { getRecentAnalyses } from '../../utils/supabase';
@@ -34,9 +34,12 @@ const ChatbotPage = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connected');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change (but not on initial load)
   useEffect(() => {
-    scrollToBottom();
+    // Only scroll if there are more than 1 message (avoid scrolling on initial welcome message)
+    if (messages.length > 1) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const scrollToBottom = () => {
@@ -251,37 +254,13 @@ const ChatbotPage = () => {
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-bold text-gray-900 dark:text-white">
               AI Assistant
             </h1>
-            <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
           </div>
           <p className="text-gray-600 dark:text-gray-400 mb-2">
             Intelligent AI assistant for deepfake detection insights
           </p>
-          
-          {/* Connection Status */}
-          <div className="flex items-center justify-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${
-              connectionStatus === 'connected' ? 'bg-green-500' :
-              connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
-              'bg-red-500'
-            }`}></div>
-            <span className={`text-sm ${
-              connectionStatus === 'connected' ? 'text-green-600 dark:text-green-400' :
-              connectionStatus === 'connecting' ? 'text-yellow-600 dark:text-yellow-400' :
-              'text-red-600 dark:text-red-400'
-            }`}>
-              {connectionStatus === 'connected' ? 'AI Assistant Ready' :
-               connectionStatus === 'connecting' ? 'Initializing...' :
-               'Service Unavailable'}
-            </span>
-          </div>
           
           {/* Analysis Context Indicator */}
           {analysisContext && (
@@ -295,7 +274,7 @@ const ChatbotPage = () => {
         {/* Chat Container */}
         <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl">
           {/* Messages Area */}
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
+          <div className="min-h-[200px] max-h-96 overflow-y-auto p-6 space-y-2">
             {messages.map((message) => (
               <div
                 key={message.id}
