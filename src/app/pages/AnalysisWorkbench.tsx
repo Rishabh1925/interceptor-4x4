@@ -511,12 +511,6 @@ const AnalysisWorkbench = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
-                {selectedFile.size > LARGE_FILE_THRESHOLD && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
-                    <Zap className="w-3 h-3" />
-                    Will analyze first 2-3 seconds for faster processing
-                  </p>
-                )}
               </div>
             ) : (
               <div className="flex flex-col items-center">
@@ -620,22 +614,22 @@ const AnalysisWorkbench = () => {
                 </div>
                 
                 {/* Agent Status */}
-                <div className="bg-green-50/50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
-                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-2">
+                <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Pre-processing Agents
                   </p>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-green-600 dark:text-green-400">Quality Analyzer</span>
+                      <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse"></div>
+                      <span className="text-gray-600 dark:text-gray-400">Quality Analyzer</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-green-600 dark:text-green-400">Metadata Extractor</span>
+                      <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse"></div>
+                      <span className="text-gray-600 dark:text-gray-400">Metadata Extractor</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-green-600 dark:text-green-400">Content Classifier</span>
+                      <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse"></div>
+                      <span className="text-gray-600 dark:text-gray-400">Content Classifier</span>
                     </div>
                   </div>
                 </div>
@@ -671,15 +665,6 @@ const AnalysisWorkbench = () => {
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Analysis Results
                   </h2>
-                  {/* OnDemand Enhanced Badge */}
-                  {analysisResult.raw_result?.ondemand_analysis?.agents_used > 0 && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-full border border-green-200 dark:border-green-800">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs font-medium text-green-700 dark:text-green-300">
-                        Enhanced by {analysisResult.raw_result.ondemand_analysis.agents_used} Agents
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <button
                   onClick={handleReset}
@@ -781,32 +766,32 @@ const AnalysisWorkbench = () => {
                 
                 {/* Show OnDemand agent insights if available */}
                 {analysisResult.raw_result?.ondemand_analysis?.agent_insights && (
-                  <div className="mt-4 p-3 bg-green-50/50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-2 flex items-center gap-1">
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  <div className="mt-4 p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
                       Agent Analysis
                     </p>
-                    <div className="space-y-2 text-xs text-green-600 dark:text-green-400">
+                    <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
                       {analysisResult.raw_result.ondemand_analysis.agent_insights.agent1 && (
                         <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded">
-                          <strong className="text-green-700 dark:text-green-300">Agent 1 (Quality):</strong>
+                          <strong className="text-gray-700 dark:text-gray-300">Agent 1 (Quality):</strong>
                           <p className="mt-1">{analysisResult.raw_result.ondemand_analysis.agent_insights.agent1}</p>
                         </div>
                       )}
                       {analysisResult.raw_result.ondemand_analysis.agent_insights.agent2 && (
                         <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded">
-                          <strong className="text-green-700 dark:text-green-300">Agent 2 (Metadata):</strong>
+                          <strong className="text-gray-700 dark:text-gray-300">Agent 2 (Metadata):</strong>
                           <p className="mt-1">{analysisResult.raw_result.ondemand_analysis.agent_insights.agent2}</p>
                         </div>
                       )}
                       {analysisResult.raw_result.ondemand_analysis.agent_insights.agent3 && (
                         <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded">
-                          <strong className="text-green-700 dark:text-green-300">Agent 3 (Content):</strong>
+                          <strong className="text-gray-700 dark:text-gray-300">Agent 3 (Content):</strong>
                           <p className="mt-1">{analysisResult.raw_result.ondemand_analysis.agent_insights.agent3}</p>
                         </div>
                       )}
-                      <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
-                        <p className="text-xs text-green-600 dark:text-green-400">
+                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           <strong>Agents Used:</strong> {analysisResult.raw_result.ondemand_analysis.agents_used}/3 • 
                           <strong> Confidence Adjustment:</strong> {(analysisResult.raw_result.ondemand_analysis.confidence_adjustment * 100).toFixed(1)}%
                         </p>
