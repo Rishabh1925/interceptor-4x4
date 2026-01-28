@@ -1,6 +1,5 @@
 # INTERCEPTOR: Agentic Deepfake Detection System
 
----
 
 ## Problem Statement
 
