@@ -1,14 +1,5 @@
 # INTERCEPTOR: Agentic Deepfake Detection System
 
-**Team Name:** 4x4
-
-**Team Members:**
-- Pranay Gadh
-- Rishabh Ranjan Singh
-- Prakhar Sharma
-- Raja Rathour
-
----
 
 ## Problem Statement
 
