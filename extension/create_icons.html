@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interceptor Icon Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #3b82f6;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background: #eff6ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3b82f6;
+        }
+        .icon-preview {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            align-items: center;
+        }
+        canvas {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        .size-label {
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Interceptor Extension Icon Generator</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Generate All Icons" below</li>
+                <li>Four PNG files will be automatically downloaded</li>
+                <li>Move the downloaded files to the <code>extension/icons/</code> folder</li>
+                <li>Load the extension in Chrome</li>
+            </ol>
+        </div>
+
+        <div class="icon-preview">
+            <div>
+                <div class="size-label">16x16</div>
+                <canvas id="canvas16" width="16" height="16"></canvas>
+            </div>
+            <div>
+                <div class="size-label">32x32</div>
+                <canvas id="canvas32" width="32" height="32"></canvas>
+            </div>
+            <div>
+                <div class="size-label">48x48</div>
+                <canvas id="canvas48" width="48" height="48"></canvas>
+            </div>
+            <div>
+                <div class="size-label">128x128</div>
+                <canvas id="canvas128" width="128" height="128"></canvas>
+            </div>
+        </div>
+
+        <button onclick="generateAllIcons()">Generate All Icons</button>
+        <button onclick="previewIcons()">Preview Icons</button>
+        
+        <div id="success" class="success">
+            ✅ All icons generated successfully! Check your downloads folder.
+        </div>
+    </div>
+
+    <script>
+        function drawCameraIcon(ctx, size) {
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Draw blue circle background
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 1, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Calculate proportional sizes
+            const bodyWidth = size * 0.5;
+            const bodyHeight = bodyWidth * 0.65;
+            const bodyX = (size - bodyWidth) / 2;
+            const bodyY = (size - bodyHeight) / 2;
+            
+            // Draw white camera body
+            ctx.fillStyle = 'white';
+            ctx.fillRect(bodyX, bodyY, bodyWidth, bodyHeight);
+            
+            // Draw blue camera lens
+            ctx.fillStyle = '#1e40af';
+            ctx.beginPath();
+            const lensRadius = bodyWidth * 0.2;
+            ctx.arc(size/2, size/2, lensRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw viewfinder (if size is large enough)
+            if (size >= 32) {
+                ctx.fillStyle = 'white';
+                const vfWidth = bodyWidth * 0.3;
+                const vfHeight = bodyHeight * 0.25;
+                const vfX = (size - vfWidth) / 2;
+                const vfY = bodyY - vfHeight + 2;
+                ctx.fillRect(vfX, vfY, vfWidth, vfHeight);
+            }
+            
+            // Add small highlight on lens
+            if (size >= 24) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(size/2 - lensRadius * 0.3, size/2 - lensRadius * 0.3, lensRadius * 0.4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        function previewIcons() {
+            const sizes = [16, 32, 48, 128];
+            sizes.forEach(size => {
+                const canvas = document.getElementById(`canvas${size}`);
+                const ctx = canvas.getContext('2d');
+                drawCameraIcon(ctx, size);
+            });
+        }
+
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            drawCameraIcon(ctx, size);
+            
+            // Download the image
+            canvas.toBlob(blob => {
+                const link = document.createElement('a');
+                link.download = `icon${size}.png`;
+                link.href = URL.createObjectURL(blob);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            }, 'image/png');
+        }
+
+        function generateAllIcons() {
+            const sizes = [16, 32, 48, 128];
+            
+            // Generate previews first
+            previewIcons();
+            
+            // Generate and download all icons with delays
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    generateIcon(size);
+                    if (index === sizes.length - 1) {
+                        // Show success message after last icon
+                        setTimeout(() => {
+                            document.getElementById('success').style.display = 'block';
+                        }, 500);
+                    }
+                }, index * 200);
+            });
+        }
+
+        // Generate previews on page load
+        window.onload = previewIcons;
+    </script>
+</body>
+</html>

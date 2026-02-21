@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Interceptor Deepfake Detector",
+  "version": "1.0.0",
+  "description": "Detect deepfakes in videos and images across the web with AI-powered analysis",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "scripting",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Interceptor Deepfake Detector",
+    "default_icon": {
+      "16": "icons/icon16.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html", "popup.css", "popup.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

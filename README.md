@@ -26,21 +26,22 @@ The proliferation of AI-generated deepfakes poses severe threats across multiple
 
 We propose an **agent-driven deepfake detection system** that addresses the critical gaps in current solutions through intelligent routing and specialized analysis.
 
-### Core Innovation: Agentic Intelligence
+### Core Innovation: Deterministic Agentic Intelligence
 
-Unlike traditional single-model approaches, INTERCEPTOR employs an intelligent agent that:
+Unlike traditional single-model approaches, INTERCEPTOR employs an intelligent agent with **deterministic routing** that:
 
 1. **Fast Initial Screening**: Uses a lightweight baseline model for rapid assessment
-2. **Smart Routing**: Escalates uncertain cases to specialist models based on video characteristics
+2. **Deterministic Smart Routing**: Routes videos to specialist models based on **file characteristics**, not stochastic confidence
 3. **Adaptive Analysis**: Routes videos through appropriate specialists (compression, lighting, audio-visual, resolution, temporal)
-4. **Confidence-Aware Processing**: Delivers reliable results with explainable confidence scores
+4. **Forensic-Grade Consistency**: Same video always routes to same specialists - suitable for legal/government use
 5. **Edge Deployment**: Functions without cloud dependency for real-time verification
 
 ### Key Differentiators
 
-**Intelligent Routing vs Static Processing:**
+**Deterministic Routing vs Static Processing:**
 - Current systems process all videos through the same pipeline
-- INTERCEPTOR adapts its analysis strategy based on video characteristics
+- INTERCEPTOR adapts its analysis strategy based on **deterministic video characteristics**
+- **Same video = same routing every time** - forensic consistency guaranteed
 - Saves computational resources while maintaining detection quality
 
 **Multi-Specialist Architecture:**
@@ -49,6 +50,13 @@ Unlike traditional single-model approaches, INTERCEPTOR employs an intelligent a
 - Audio-Visual Specialist: Checks lip-sync and audio-visual correlation
 - Resolution Specialist: Identifies upsampling and resolution manipulation
 - Temporal Specialist: Examines frame-to-frame consistency
+
+**Deterministic Routing Innovation:**
+- **File-Characteristic Based**: Routing decisions based on bitrate, file size, format, and complexity
+- **100% Reproducible**: Same video always routes to same specialists across all runs
+- **Forensic-Grade**: Suitable for legal proceedings and government applications
+- **Audit Trail**: Complete documentation of routing decisions and reasoning
+- **Policy-Driven**: Rule-based specialist selection eliminates stochastic behavior
 
 **Real-World Robustness:**
 - Handles compressed, re-recorded, and low-quality videos
